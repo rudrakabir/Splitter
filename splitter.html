@@ -19,6 +19,21 @@
         textarea {
             height: 200px;
         }
+        #progressBar {
+            width: 100%;
+            background-color: #f0f0f0;
+            padding: 3px;
+            border-radius: 3px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2);
+            display: none;
+        }
+        #progressBar div {
+            width: 0;
+            height: 24px;
+            background-color: #4CAF50;
+            border-radius: 3px;
+            transition: width 0.5s ease-in-out;
+        }
     </style>
 </head>
 <body>
@@ -27,11 +42,14 @@
     <input type="file" id="fileInput" accept=".txt">
     <input type="number" id="splitSize" placeholder="Enter split size (e.g., 50000 characters)">
     <button onclick="splitText()">Split Text</button>
+    <div id="progressBar"><div></div></div>
 
     <script>
-        function splitText() {
+        async function splitText() {
             const text = document.getElementById('inputText').value;
             const splitSize = parseInt(document.getElementById('splitSize').value);
+            const progressBar = document.getElementById('progressBar');
+            const progressBarFill = progressBar.querySelector('div');
 
             if (!text || !splitSize) {
                 alert('Please enter both text and split size.');
@@ -43,12 +61,22 @@
                 chunks.push(text.slice(i, i + splitSize));
             }
 
-            chunks.forEach((chunk, index) => {
-                const blob = new Blob([chunk], {type: "text/plain;charset=utf-8"});
-                saveAs(blob, `split_${index + 1}.txt`);
-            });
+            progressBar.style.display = 'block';
+            
+            for (let i = 0; i < chunks.length; i++) {
+                const blob = new Blob([chunks[i]], {type: "text/plain;charset=utf-8"});
+                saveAs(blob, `split_${i + 1}.txt`);
+                
+                // Update progress bar
+                const progress = ((i + 1) / chunks.length) * 100;
+                progressBarFill.style.width = `${progress}%`;
+                
+                // Wait a short time before next download to avoid overwhelming the browser
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
 
-            alert(`Text split into ${chunks.length} files.`);
+            progressBar.style.display = 'none';
+            alert(`All ${chunks.length} files have been processed and should now be downloaded.`);
         }
 
         document.getElementById('fileInput').addEventListener('change', function(e) {
