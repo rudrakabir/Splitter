@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Splitter</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        textarea, input, button {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        textarea {
+            height: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Text Splitter</h1>
+    <textarea id="inputText" placeholder="Paste your text here or upload a file"></textarea>
+    <input type="file" id="fileInput" accept=".txt">
+    <input type="number" id="splitSize" placeholder="Enter split size (e.g., 50000 characters)">
+    <button onclick="splitText()">Split Text</button>
+
+    <script>
+        function splitText() {
+            const text = document.getElementById('inputText').value;
+            const splitSize = parseInt(document.getElementById('splitSize').value);
+
+            if (!text || !splitSize) {
+                alert('Please enter both text and split size.');
+                return;
+            }
+
+            const chunks = [];
+            for (let i = 0; i < text.length; i += splitSize) {
+                chunks.push(text.slice(i, i + splitSize));
+            }
+
+            chunks.forEach((chunk, index) => {
+                const blob = new Blob([chunk], {type: "text/plain;charset=utf-8"});
+                saveAs(blob, `split_${index + 1}.txt`);
+            });
+
+            alert(`Text split into ${chunks.length} files.`);
+        }
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('inputText').value = e.target.result;
+            };
+            reader.readAsText(file);
+        });
+    </script>
+</body>
+</html>
